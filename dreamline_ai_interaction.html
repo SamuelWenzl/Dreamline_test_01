@@ -1,0 +1,49 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Dreamline AI Theater - Voice & Text Interaction</title>
+    <style>
+        body { font-family: Arial; background: #111; color: #eee; text-align: center; padding: 50px; }
+        input, button { padding: 10px; margin: 10px; font-size: 18px; }
+        #response { margin-top: 30px; font-size: 20px; color: #0ff; }
+    </style>
+</head>
+<body>
+    <h1>Dreamline: Speak or Type Your Dream</h1>
+    <input type="text" id="userInput" placeholder="Type your dream here..." size="40">
+    <button onclick="sendInput()">Submit</button>
+    <br>
+    <button onclick="startListening()">Speak</button>
+    <div id="response"></div>
+
+    <script>
+        function sendInput(inputText = null) {
+            const input = inputText || document.getElementById('userInput').value;
+            fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ input: input })
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('response').innerText = data.response;
+                const utterance = new SpeechSynthesisUtterance(data.response);
+                speechSynthesis.speak(utterance);
+            });
+        }
+
+        function startListening() {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'en-US';
+            recognition.start();
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('userInput').value = transcript;
+                sendInput(transcript);
+            }
+        }
+    </script>
+</body>
+</html>
